@@ -296,18 +296,17 @@ class Migrator
         }
         if ($opts[Migrator::OPT_PDO_DSN])
         {
-            // parse out user/pass from DSN
-            $matches = array();
-            $user = $pass = null;
-            if (preg_match('/user=([^;]+)(;|\z)/', $opts[Migrator::OPT_PDO_DSN], $matches))
+            if ($opts[Migrator::OPT_PDO_DSN] instanceof PDO)
             {
-                $user = $matches[1];
+                // If the DNS is actually a PDO object, use it.
+                $this->dbCon = $opts[Migrator::OPT_PDO_DSN];
             }
-            if (preg_match('/password=([^;]+)(;|\z)/', $opts[Migrator::OPT_PDO_DSN], $matches))
+            else
             {
-                $pass = $matches[1];
+                // Otherwise, parse the DSN.
+                $this->dbCon = self::getPDOFromDSN($opts[Migrator::OPT_PDO_DSN]);
             }
-            $this->dbCon = new PDO($opts[Migrator::OPT_PDO_DSN], $user, $pass);
+
             $this->dbCon->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         }
         $this->quiet = $opts[Migrator::OPT_QUIET];
@@ -346,6 +345,22 @@ class Migrator
                               "\n\n"
                               );
         }
+    }
+
+    protected static function getPDOFromDSN($dsn)
+    {
+        // parse out user/pass from DSN
+        $matches = array();
+        $user = $pass = null;
+        if (preg_match('/user=([^;]+)(;|\z)/', $dsn, $matches))
+        {
+            $user = $matches[1];
+        }
+        if (preg_match('/password=([^;]+)(;|\z)/', $dsn, $matches))
+        {
+            $pass = $matches[1];
+        }
+        return new PDO($dsn, $user, $pass);
     }
 
     protected function initializeMigrationsDir()
