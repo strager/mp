@@ -756,11 +756,13 @@ END;
         }
 
         // calculate direction
+        $migrationFiles = array_keys($this->migrationFiles);
+
         if ($currentVersion === Migrator::VERSION_ZERO)
         {
             $direction = Migrator::DIRECTION_UP;
         }
-        else if ($currentVersion === array_pop(array_keys($this->migrationFiles)))
+        else if ($currentVersion === array_pop($migrationFiles))
         {
             $direction = Migrator::DIRECTION_DOWN;
         }
